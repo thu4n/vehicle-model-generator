@@ -35,7 +35,8 @@ import shutil
 import sys
 from typing import List
 
-import vspec  # type: ignore
+import vss_tools.vspec.vspec as vspec  # type: ignore
+from vss_tools.vspec.tree import VSSNode
 
 from velocitas.model_generator.cpp.cpp_generator import VehicleModelCppGenerator
 from velocitas.model_generator.python.python_generator import (
@@ -76,9 +77,10 @@ def generate_model(
     # yaml_out = open(args.yaml_file, "w", encoding="utf-8")
 
     if len(ext_attributes_list) > 0:
-        vspec.model.vsstree.VSSNode.whitelisted_extended_attributes = (
-            ext_attributes_list
-        )
+        # vspec.model.vsstree.VSSNode.whitelisted_extended_attributes = (
+        #     ext_attributes_list
+        # )
+        VSSNode.get_extra_attributes(allowed=ext_attributes_list)
         print(f"Known extended attributes: {', '.join(ext_attributes_list)}")
 
     try:
@@ -111,7 +113,7 @@ def generate_model(
             print("All done.")
         else:
             print(f"Language {language} is not supported yet.")
-    except vspec.VSpecError as e:
+    except vspec.SpecException as e:
         print(f"Error: {e}")
         sys.exit(255)
     except UnsupportedFileFormat as e:
