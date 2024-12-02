@@ -18,8 +18,9 @@ import os
 from typing import List, Set
 
 # Until vsspec issue will be fixed: https://github.com/COVESA/vss-tools/issues/208
-from vspec.model.constants import VSSType  # type: ignore
-from vspec.model.vsstree import VSSNode  # type: ignore
+
+from vss_tools.vspec.tree import VSSNode # type: ignore       
+import vss_tools.vspec.model as model
 
 from velocitas.model_generator.python.vss_collection import VssCollection
 from velocitas.model_generator.utils import CodeGeneratorContext
@@ -84,7 +85,7 @@ class VehicleModelPythonGenerator:
             child_package_list = parent_package_list + [child.name]
             child_path = os.path.join(self.root_path, *child_package_list)
 
-            if child.type.value == VSSType.BRANCH.value:
+            if child.type.value == model.NodeType.ACTUATOR.value:
                 if not os.path.exists(child_path):
                     os.makedirs(child_path)
                 self.__gen_model(child, child_package_list)
@@ -136,7 +137,7 @@ class VehicleModelPythonGenerator:
             self.ctx.write("\n\nAttributes\n")
             self.ctx.write("----------\n")
             for i in node.children:
-                if i.type.value == VSSType.ATTRIBUTE.value:
+                if i.type.value == model.NodeType.ATTRIBUTE.value:
                     self.ctx.write(f"{i.name}: {i.type.value} ({i.datatype.value})\n")
                 else:
                     self.ctx.write(f"{i.name}: {i.type.value}\n")
@@ -182,7 +183,7 @@ class VehicleModelPythonGenerator:
 
         for child in node.children:
             # Check if branch, add class members
-            if child.type.value == VSSType.BRANCH.value:
+            if child.type.value == model.NodeType.BRANCH.value:
                 # if has instances, a collection will be created
                 if child.instances:
                     collection = VssCollection(child)
@@ -198,9 +199,9 @@ class VehicleModelPythonGenerator:
                 self.imports.add(".".join(package_list + [child.name]))
             # else (ATTRIBUTE, SENSOR, ACTUATOR)
             elif child.type.value in (
-                VSSType.ATTRIBUTE.value,
-                VSSType.SENSOR.value,
-                VSSType.ACTUATOR.value,
+                model.NodeType.ATTRIBUTE.value,
+                model.NodeType.SENSOR.value,
+                model.NodeType.ACTUATOR.value,
             ):
                 self.ctx.write(
                     f"self.{child.name} = "
