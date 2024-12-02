@@ -16,7 +16,11 @@ import json
 from abc import abstractmethod
 from typing import List
 
-import vspec  # type: ignore
+from vss_tools.vspec.units_quantities import load_units
+from vss_tools.vspec.main import get_trees
+from vss_tools.vspec.tree import build_tree
+# from vss_tools.vspec.model import 
+
 
 from velocitas.model_generator.tree_generator.constants import JSON, VSPEC
 
@@ -52,29 +56,47 @@ class Vspec(FileFormat):
     def load_tree(self):
         """loads a tree of a vspec file through vss-tools"""
         print("Loading vspec...")
-        vspec.load_units(
+        load_units(
             self.file_path,
             self.unit_file_path_list,
         )
-        tree = vspec.load_tree(
-            self.file_path,
-            self.include_dirs,
-            tree_type=vspec.VSSTreeType.SIGNAL_TREE,
-            break_on_name_style_violation=self.strict,
-            expand_inst=False,
-        )
+        # tree = vspec.load_tree(
+        #     self.file_path,
+        #     self.include_dirs,
+        #     tree_type=vspec.VSSTreeType.SIGNAL_TREE,
+        #     break_on_name_style_violation=self.strict,
+        #     expand_inst=False,
+        # )
 
-        for overlay in self.overlays:
-            print(f"Applying VSS overlay from {overlay}...")
-            overlay_tree = vspec.load_tree(
-                overlay,
-                self.include_dirs,
-                merge_private=False,
-                break_on_unknown_attribute=self.strict,
-                break_on_name_style_violation=self.strict,
-                expand_inst=False,
+        if len(self.overlays) > 0:
+            print(f"Applying VSS overlay...")
+            tree, _ = get_trees(
+                vspec=self.file_path,
+                include_dirs=self.include_dirs,
+                strict=self.strict,
+                expand=False,
+                overlays=self.overlays   
             )
-            vspec.merge_tree(tree, overlay_tree)
+
+        else:
+            tree, _ = get_trees(
+                vspec=self.file_path, 
+                include_dirs=self.include_dirs,
+                strict=self.strict,
+                expand=False
+            )
+
+        # for overlay in self.overlays:
+        #     print(f"Applying VSS overlay from {overlay}...")
+        #     overlay_tree = vspec.load_tree(
+        #         overlay,
+        #         self.include_dirs,
+        #         merge_private=False,
+        #         break_on_unknown_attribute=self.strict,
+        #         break_on_name_style_violation=self.strict,
+        #         expand_inst=False,
+        #     )
+        #     vspec.merge_tree(tree, overlay_tree)
         return tree
 
 
@@ -98,9 +120,9 @@ class Json(FileFormat):
         output_json = json.load(open(self.file_path))
         self.__extend_fields(next(iter(output_json.values())))
         print("Generating tree from json...")
-        vspec.load_units(
+        load_units(
             self.file_path,
             self.unit_file_path_list,
         )
-        tree = vspec.render_tree(output_json, vspec.VSSTreeType.SIGNAL_TREE)
+        tree, _ = build_tree(output_json)
         return tree
