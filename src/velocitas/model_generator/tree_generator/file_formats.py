@@ -16,10 +16,11 @@ import json
 from abc import abstractmethod
 from typing import List
 
-from vss_tools.vspec.units_quantities import load_units
+from vss_tools.vspec.units_quantities import load_units, load_quantities
 from vss_tools.vspec.main import get_trees
 from vss_tools.vspec.tree import build_tree
 # from vss_tools.vspec.model import 
+from pathlib import Path
 
 
 from velocitas.model_generator.tree_generator.constants import JSON, VSPEC
@@ -43,6 +44,7 @@ class Vspec(FileFormat):
         self,
         file_path: str,
         unit_file_path_list: List[str],
+        quantities_file_path_list: List[str],
         include_dirs: List,
         strict: bool,
         overlays: List[str],
@@ -52,14 +54,16 @@ class Vspec(FileFormat):
         self.include_dirs = include_dirs
         self.strict = strict
         self.overlays = overlays
+        self.quantities_file_path_list = quantities_file_path_list
+
 
     def load_tree(self):
         """loads a tree of a vspec file through vss-tools"""
         print("Loading vspec...")
-        load_units(
-            self.file_path,
-            self.unit_file_path_list,
-        )
+        # load_units(
+        #     self.file_path,
+        #     self.unit_file_path_list,
+        # )
         # tree = vspec.load_tree(
         #     self.file_path,
         #     self.include_dirs,
@@ -67,23 +71,30 @@ class Vspec(FileFormat):
         #     break_on_name_style_violation=self.strict,
         #     expand_inst=False,
         # )
-
+        include_dir_paths = [Path(include_dir) for include_dir in self.include_dirs]
+        vspec_path = Path(self.file_path)
+        unit_files = [Path(unit_file) for unit_file in self.unit_file_path_list]
+        quantities_files = [Path(quantities_file) for quantities_file in self.quantities_file_path_list]
         if len(self.overlays) > 0:
             print(f"Applying VSS overlay...")
             tree, _ = get_trees(
-                vspec=self.file_path,
-                include_dirs=self.include_dirs,
+                vspec=vspec_path,
+                include_dirs=include_dir_paths,
                 strict=self.strict,
                 expand=False,
-                overlays=self.overlays   
+                overlays=self.overlays,
+                units=unit_files,
+                quantities=quantities_files
             )
 
         else:
             tree, _ = get_trees(
-                vspec=self.file_path, 
-                include_dirs=self.include_dirs,
+                vspec=vspec_path, 
+                include_dirs=include_dir_paths,
                 strict=self.strict,
-                expand=False
+                expand=False,
+                units=unit_files,
+                quantities=quantities_files
             )
 
         # for overlay in self.overlays:
@@ -101,9 +112,10 @@ class Vspec(FileFormat):
 
 
 class Json(FileFormat):
-    def __init__(self, file_path: str, unit_file_path_list: List[str]):
+    def __init__(self, file_path: str, unit_file_path_list: List[str], quantities_file_path_list: List[str]):
         super().__init__(file_path)
         self.unit_file_path_list = unit_file_path_list
+        self.quantities_file_path_list = quantities_file_path_list
 
     # VSS nodes have a field "$file_name",
     # so it needs to be added for the vss-tools to work
@@ -120,9 +132,13 @@ class Json(FileFormat):
         output_json = json.load(open(self.file_path))
         self.__extend_fields(next(iter(output_json.values())))
         print("Generating tree from json...")
-        load_units(
-            self.file_path,
-            self.unit_file_path_list,
+        unit_files = [Path(unit_file) for unit_file in self.unit_file_path_list]
+        quantities_files = [Path(quantities_file) for quantities_file in self.quantities_file_path_list]
+        load_quantities(
+            quantities=quantities_files
         )
-        tree, _ = build_tree(output_json)
+        load_units(
+            unit_files=unit_files
+        )
+        tree, _ = build_tree()
         return tree

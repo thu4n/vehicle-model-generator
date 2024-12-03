@@ -35,6 +35,7 @@ class FileImport:
         self,
         file_path: str,
         unit_file_path_list: List[str],
+        quantities_file_path_list: List[str],
         include_dirs: List[str],
         strict: bool,
         overlays: List[str],
@@ -45,13 +46,14 @@ class FileImport:
         self.overlays = overlays
         # setting the file format implementation object from the file_path
         self.format_implementation = self.__get_format_implementation(
-            self.file_path, unit_file_path_list
+            self.file_path, unit_file_path_list, quantities_file_path_list
         )
 
     def __get_format_implementation(
         self,
         file_path: str,
         unit_file_path_list: List[str],
+        quantities_file_path_list: List[str]
     ):
         """Initialize implementation of VSPEC or JSON.
 
@@ -73,6 +75,7 @@ class FileImport:
                 return Vspec(
                     file_path=self.file_path,
                     unit_file_path_list=unit_file_path_list,
+                    quantities_file_path_list=quantities_file_path_list,
                     include_dirs=self.include_dirs,
                     strict=self.strict,
                     overlays=self.overlays,
@@ -81,6 +84,7 @@ class FileImport:
                 return Json(
                     file_path=file_path,
                     unit_file_path_list=unit_file_path_list,
+                    quantities_file_path_list=quantities_file_path_list
                 )
         else:
             raise UnsupportedFileFormat(file_ext)
