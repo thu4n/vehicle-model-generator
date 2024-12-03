@@ -16,9 +16,11 @@ import json
 from abc import abstractmethod
 from typing import List
 
-from vss_tools.vspec.units_quantities import load_units, load_quantities
+from vss_tools import log
+from vss_tools.vspec.main import load_quantities_and_units
 from vss_tools.vspec.main import get_trees
-from vss_tools.vspec.tree import build_tree
+from vss_tools.vspec.tree import build_tree, ModelValidationException
+from vss_tools.vspec.vspec import load_vspec
 # from vss_tools.vspec.model import 
 from pathlib import Path
 
@@ -60,19 +62,10 @@ class Vspec(FileFormat):
     def load_tree(self):
         """loads a tree of a vspec file through vss-tools"""
         print("Loading vspec...")
-        # load_units(
-        #     self.file_path,
-        #     self.unit_file_path_list,
-        # )
-        # tree = vspec.load_tree(
-        #     self.file_path,
-        #     self.include_dirs,
-        #     tree_type=vspec.VSSTreeType.SIGNAL_TREE,
-        #     break_on_name_style_violation=self.strict,
-        #     expand_inst=False,
-        # )
+
         include_dir_paths = [Path(include_dir) for include_dir in self.include_dirs]
         vspec_path = Path(self.file_path)
+        print("Include ", include_dir_paths)
         unit_files = [Path(unit_file) for unit_file in self.unit_file_path_list]
         quantities_files = [Path(quantities_file) for quantities_file in self.quantities_file_path_list]
         if len(self.overlays) > 0:
@@ -97,17 +90,6 @@ class Vspec(FileFormat):
                 quantities=quantities_files
             )
 
-        # for overlay in self.overlays:
-        #     print(f"Applying VSS overlay from {overlay}...")
-        #     overlay_tree = vspec.load_tree(
-        #         overlay,
-        #         self.include_dirs,
-        #         merge_private=False,
-        #         break_on_unknown_attribute=self.strict,
-        #         break_on_name_style_violation=self.strict,
-        #         expand_inst=False,
-        #     )
-        #     vspec.merge_tree(tree, overlay_tree)
         return tree
 
 
@@ -125,7 +107,7 @@ class Json(FileFormat):
                 self.__extend_fields(child_d)
         d["$file_name$"] = ""
         return
-
+    
     def load_tree(self):
         """loads a tree of a json file through vss-tools"""
         print("Loading json...")
@@ -134,11 +116,12 @@ class Json(FileFormat):
         print("Generating tree from json...")
         unit_files = [Path(unit_file) for unit_file in self.unit_file_path_list]
         quantities_files = [Path(quantities_file) for quantities_file in self.quantities_file_path_list]
-        load_quantities(
-            quantities=quantities_files
-        )
-        load_units(
-            unit_files=unit_files
-        )
-        tree, _ = build_tree()
+        
+        try:
+            load_quantities_and_units(quantities_files, unit_files, "")
+        except ModelValidationException as e:
+            log.critical(e)
+            exit(1)
+        # vspec_data = load_vspec( [vspec] + list(overlays))
+        tree, _ = build_tree(output_json)
         return tree

@@ -89,6 +89,7 @@ class VehicleModelPythonGenerator:
             if vss_data.type.value == model.NodeType.ACTUATOR.value:
                 if not os.path.exists(child_path):
                     os.makedirs(child_path)
+                    print("Make dirs...")
                 self.__gen_model(child, child_package_list)
                 self.__visit_nodes(child, child_package_list)
 
@@ -139,19 +140,16 @@ class VehicleModelPythonGenerator:
             self.ctx.write("----------\n")
             for i in node.children:
                 vss_data = i.get_vss_data()
-                print(vss_data)
-                print(vss_data.type.value )
-                print(type(vss_data))
                 if vss_data.type.value == model.NodeType.ATTRIBUTE.value:
-                    self.ctx.write(f"{vss_data.fqn}: {vss_data.type.value} ({vss_data.datatype})\n")
+                    self.ctx.write(f"{i.name}: {vss_data.type.value} ({vss_data.datatype})\n")
                 else:
-                    self.ctx.write(f"{vss_data.fqn}: {vss_data.type.value}\n")
+                    self.ctx.write(f"{i.name}: {vss_data.type.value}\n")
 
                 self.ctx.indent()
                 self.ctx.write(f"{vss_data.description}\n")
                 self.ctx.write("\n")
 
-                if  vss_data.comment:
+                if vss_data.comment:
                     self.ctx.write(f"{vss_data.comment}\n")
                     self.ctx.write("\n")
 
@@ -190,21 +188,23 @@ class VehicleModelPythonGenerator:
 
         for child in node.children:
             vss_data = child.get_vss_data()
+            print(vss_data)
             # Check if branch, add class members
             if vss_data.type.value == model.NodeType.BRANCH.value:
                 # if has instances, a collection will be created
                 if vss_data.instances:
+                    print("INSTANCES DETECTED")
                     collection = VssCollection(child)
                     self.collections.append(collection)
                     self.ctx.write(
-                        f'self.{vss_data.fqn} = {collection.name}("{vss_data.fqn}", self)\n'
+                        f'self.{child.name} = {collection.name}("{child.name}", self)\n'
                     )
                 else:
                     # add simple branch member
                     self.ctx.write(
-                        f'self.{vss_data.fqn} = {vss_data.fqn}("{vss_data.fqn}", self)\n'
+                        f'self.{child.name} = {child.name}("{child.name}", self)\n'
                     )
-                self.imports.add(".".join(package_list + [vss_data.fqn]))
+                self.imports.add(".".join(package_list + [child.name]))
             # else (ATTRIBUTE, SENSOR, ACTUATOR)
             elif vss_data.type.value in (
                 model.NodeType.ATTRIBUTE.value,
@@ -212,9 +212,9 @@ class VehicleModelPythonGenerator:
                 model.NodeType.ACTUATOR.value,
             ):
                 self.ctx.write(
-                    f"self.{vss_data.fqn} = "
+                    f"self.{child.name} = "
                     f"DataPoint{self.__get_datatype(vss_data.datatype)}"
-                    f'("{vss_data.fqn}", self)\n'
+                    f'("{child.name}", self)\n'
                 )
                 self.model_imports.add(
                     f"DataPoint{self.__get_datatype(vss_data.datatype)}"

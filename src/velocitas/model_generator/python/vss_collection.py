@@ -57,7 +57,8 @@ class VssCollection:
         self.__gen_collection(node)
 
     def __gen_collection(self, node: VSSNode):
-        print(f"- {self.name:30}{node.instances}")
+        vss_data = node.get_vss_data()
+        print(f"thuan- {self.name:30}{vss_data.instances}")
         self.ctx.write(self.ctx.line_break)
         self.ctx.write(f"class {self.name}(Model):\n")
         with self.ctx as def_ctx:
@@ -67,20 +68,20 @@ class VssCollection:
                 body_ctx.write("self.name = name\n")
 
                 complex_list = False
-                for instance in node.instances:
+                for instance in vss_data.instances:
                     if isinstance(instance, list) or re.match(
                         _COLLECTION_REG_EX, instance
                     ):
                         complex_list = True
 
                 vss_instance = None
-                instance_list_len = len(node.instances)
+                instance_list_len = len(vss_data.instances)
                 instance_type = f"{node.name}"
                 has_inner_types = False
                 if complex_list:
                     # Complex Instances collection
                     vss_instance = self.__parse_instances(
-                        _COLLECTION_REG_EX, node.instances[0]
+                        _COLLECTION_REG_EX, vss_data.instances[0]
                     )
 
                     # if instance_list_len = 1:
@@ -90,14 +91,14 @@ class VssCollection:
                     #   -> Multi-level (nested) instance type.
                     # E.g ['Row[1,2]', ['Left', 'Right']]
                     if instance_list_len > 1:
-                        instance_type = f"{vss_instance.name}{_TYPE_SUFFIX}"
+                        instance_type = f"{node.name}{_TYPE_SUFFIX}"
                         has_inner_types = True
 
                 else:
                     # Simple instance type (list object).
                     # E.g. Row[1,4] or ['Low', 'High']
                     vss_instance = self.__parse_instances(
-                        _COLLECTION_REG_EX, node.instances
+                        _COLLECTION_REG_EX, vss_data.instances
                     )
 
                 instance_list = vss_instance.content
@@ -118,7 +119,7 @@ class VssCollection:
             self.ctx.write(self.ctx.line_break)
             # add inner types
             inner_instances = self.__parse_instances(
-                _COLLECTION_REG_EX, node.instances[1]
+                _COLLECTION_REG_EX, vss_data.instances[1]
             )
             self.__gen_collection_types(node.name, instance_type, inner_instances)
             # add getter

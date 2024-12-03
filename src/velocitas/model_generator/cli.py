@@ -18,7 +18,8 @@
 
 import argparse
 
-import vspec  # type: ignore
+from vss_tools.vspec import vspec  # type: ignore
+
 
 from velocitas.model_generator import generate_model
 
@@ -87,6 +88,14 @@ def main():
         help="The file locations of units files as comma separated list.",
     )
     parser.add_argument(
+        "-q",
+        "--quantities",
+        nargs="+",
+        type=str,
+        default=[],
+        help="The file locations of quantities files as comma separated list.",
+    )
+    parser.add_argument(
         "-e",
         "--extended-attributes",
         type=str,
@@ -105,21 +114,22 @@ def main():
 
     ext_attributes_list = args.extended_attributes.split(",")
     if len(ext_attributes_list) > 0:
-        vspec.model.vsstree.VSSNode.whitelisted_extended_attributes = (
-            ext_attributes_list
-        )
+        # vspec.model.vsstree.VSSNode.whitelisted_extended_attributes = (
+        #     ext_attributes_list
+        # )
         print(f"Known extended attributes: {', '.join(ext_attributes_list)}")
 
     generate_model(
-        args.input_file_path,
-        args.units,
-        args.language,
-        args.target_folder,
-        args.name,
-        args.strict,
-        args.include_dir,
-        ext_attributes_list,
-        args.overlays,
+        input_file_path=args.input_file_path,
+        input_unit_file_path_list=args.units,
+        input_quantities_file_path_list=args.quantities,
+        language=args.language,
+        target_folder=args.target_folder,
+        name=args.name,
+        strict=args.strict,
+        include_dir=args.include_dir,
+        ext_attributes_list=ext_attributes_list,
+        overlays=args.overlays,
     )
 
 

@@ -19,8 +19,8 @@ import re
 from typing import List, Set
 
 # Until vsspec issue will be fixed: https://github.com/COVESA/vss-tools/issues/208
-from vspec.model.constants import VSSType  # type: ignore
-from vspec.model.vsstree import VSSNode  # type: ignore
+from vss_tools.vspec.tree import VSSNode # type: ignore       
+import vss_tools.vspec.model as model
 
 from velocitas.model_generator.cpp.cpp_keywords import cpp_keywords
 from velocitas.model_generator.utils import CodeGeneratorContext, camel_to_snake_case
@@ -99,7 +99,7 @@ class VehicleModelConan(ConanFile):
                 self.root_path, *self.__to_folder_names(child_namespace_list)
             )
 
-            if child.type == VSSType.BRANCH:
+            if child.type == model.NodeType.BRANCH:
                 if not os.path.exists(child_path):
                     os.makedirs(child_path)
                 self.__gen_model(child, child_namespace_list)
@@ -306,7 +306,7 @@ class VehicleModelConan(ConanFile):
     def __gen_collection_types(self, node: VSSNode, namespace_list: List[str]) -> str:
         collection_types = []
         for child in node.children:
-            if child.type == VSSType.BRANCH:
+            if child.type == model.NodeType.BRANCH:
                 child_namespace_list = namespace_list + [child.name]
                 path = os.path.join(
                     *self.__to_folder_names(child_namespace_list), child.name
@@ -380,7 +380,7 @@ class VehicleModelConan(ConanFile):
                     )
                     member += ",\n\t\t" + f'{child.name}("{child.name}", this)'
 
-                if child.type == VSSType.BRANCH:
+                if child.type == model.NodeType.BRANCH:
                     if child.instances:
                         header_public.write(f"{child.name}Collection {child.name};\n\n")
                         member += ",\n\t\t" + f"{child.name}(this)"

@@ -47,10 +47,10 @@ from velocitas.model_generator.tree_generator.file_import import (
     UnsupportedFileFormat,
 )
 
-
 def generate_model(
     input_file_path: str,
     input_unit_file_path_list: List[str],
+    input_quantities_file_path_list: List[str],
     language: str,
     target_folder: str = "./gen_model",
     name: str = "vehicle",
@@ -80,7 +80,6 @@ def generate_model(
         # vspec.model.vsstree.VSSNode.whitelisted_extended_attributes = (
         #     ext_attributes_list
         # )
-        VSSNode.get_extra_attributes(allowed=ext_attributes_list)
         print(f"Known extended attributes: {', '.join(ext_attributes_list)}")
 
     try:
@@ -90,6 +89,7 @@ def generate_model(
         tree = FileImport(
             input_file_path,
             input_unit_file_path_list,
+            input_quantities_file_path_list,
             include_dirs,
             strict,
             overlays,
