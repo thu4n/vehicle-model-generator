@@ -1,1 +1,2 @@
 vss-tools==4.0
+ruamel.yaml==0.18.6
