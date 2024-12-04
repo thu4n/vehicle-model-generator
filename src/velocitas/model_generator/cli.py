@@ -100,7 +100,11 @@ def main():
         metavar="<input_file_path>",
         help="The file to convert. Currently supports JSON and Vspec file formats.",
     )
-
+    parser.add_argument(
+    "--format-units",
+    action="store_true",
+    help="Format VSS-5.0 units.yaml to be compatible with VSS-4.0 vspecs parsing",
+    )
     args = parser.parse_args()
 
     ext_attributes_list = args.extended_attributes.split(",")
@@ -120,6 +124,7 @@ def main():
         args.include_dir,
         ext_attributes_list,
         args.overlays,
+        args.format_units,
     )
 
 

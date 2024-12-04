@@ -57,6 +57,7 @@ def generate_model(
     include_dir: str = ".",
     ext_attributes_list: List[str] = [],
     overlays: List[str] = [],
+    format_units: bool = False,
 ) -> None:
     """Generates a model to a file (json, vspec)
     input_file_path str: The file to convert.
@@ -91,6 +92,7 @@ def generate_model(
             include_dirs,
             strict,
             overlays,
+            format_units
         ).load_tree()
 
         if language == "python":

@@ -91,7 +91,7 @@ class Json(FileFormat):
                 self.__extend_fields(child_d)
         d["$file_name$"] = ""
         return
-
+    
     def load_tree(self):
         """loads a tree of a json file through vss-tools"""
         print("Loading json...")

@@ -17,6 +17,7 @@ from typing import List
 
 from velocitas.model_generator.tree_generator.constants import JSON, VSPEC
 from velocitas.model_generator.tree_generator.file_formats import Json, Vspec, formats
+from velocitas.model_generator.tree_generator.yaml_formats import format_units_yaml
 
 
 # if no other file supported format is found
@@ -38,6 +39,7 @@ class FileImport:
         include_dirs: List[str],
         strict: bool,
         overlays: List[str],
+        format_units: bool,
     ):
         self.file_path = file_path
         self.include_dirs = include_dirs
@@ -45,13 +47,15 @@ class FileImport:
         self.overlays = overlays
         # setting the file format implementation object from the file_path
         self.format_implementation = self.__get_format_implementation(
-            self.file_path, unit_file_path_list
+            self.file_path, unit_file_path_list, format_units
         )
 
     def __get_format_implementation(
         self,
         file_path: str,
         unit_file_path_list: List[str],
+        format_units: bool
+
     ):
         """Initialize implementation of VSPEC or JSON.
 
@@ -67,6 +71,11 @@ class FileImport:
             unit_file_ext = os.path.splitext(unit_file_path)[1][1:]
             if unit_file_ext != "yaml":
                 raise UnsupportedFileFormat(unit_file_ext)
+            
+        if format_units:
+            output_units_path = "./formatted_units.yaml"
+            format_units_yaml(unit_file_path_list[0], 'units', output_units_path)
+            unit_file_path_list = [output_units_path]
 
         if file_ext in formats:
             if file_ext == VSPEC:
