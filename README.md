@@ -47,6 +47,7 @@ Or use VSCode Launch: Press ```F5```, select ```Python``` or ```cpp``` and pass 
 `-o OVERLAY_FILE`, `--overlays OVERLAY_FILE`        | Add overlays that will be layered on top of the VSS file in the order they appear.
 `-u UNITS`, `--units UNITS`                         | The file location of units file. If left empty it tries downloading default units file from https://github.com/COVESA/vehicle_signal_specification/blob/v4.0/spec/units.yaml.
 `-e EXTENDED_ATTRIBUTES`,<br>`--extended-attributes EXTENDED_ATTRIBUTES` | Whitelisted extended attributes as comma separated list. Note, that extended attributes aren't considered by the generator. This paramter is only for suppressing warnings/errors."
+`--format-units` | Format VSS-5.0 units.yaml to be compatible with VSS-4.0 vspecs parsing
 
 ## Known issues
 VSS v3.0 has a typo in its specification. This clashes with vss tools 4.0 which is needed to support VSS v4.0 because it allows only lower case versions for types of signals. e.g the problem is with 'actuator' instead of 'Actuator' in https://github.com/COVESA/vehicle_signal_specification/blob/525e2bd00ddf061851bdc75e849178e5d3ad5833/spec/Powertrain/Battery.vspec#L229. Json files work just fine. See https://github.com/COVESA/vehicle_signal_specification/releases for getting the json files.
